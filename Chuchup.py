@@ -122,13 +122,15 @@ def obter_url_qr_code(texto):
     texto_encoded = urllib.parse.quote(texto)
     return f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={texto_encoded}"
 
-# --- INICIALIZAÇÃO DE DADOS ---
+# --- GARANTE INICIALIZAÇÃO E CARREGAMENTO ---
 inicializar_arquivos()
 estoque_df, vendas_df, pedidos_df, config_pix = carregar_dados()
 
-# --- VERIFICAÇÃO DO MODO (CLIENTE OU ADM) ---
-query_params = st.query_params
-eh_cliente = query_params.get("modo") == "cliente"
+# --- DETECÇÃO DO PARÂMETRO DA URL ---
+try:
+    eh_cliente = st.query_params.get("modo") == "cliente"
+except Exception:
+    eh_cliente = False
 
 # ==========================================
 # 📱 INTERFACE DO CLIENTE (Via link exclusivo)
@@ -151,7 +153,7 @@ if eh_cliente:
             sabor_selecionado = st.selectbox("Escolha o Sabor:", estoque_disponivel["Sabor"].unique())
             
             detalhes_item = estoque_disponivel[estoque_disponivel["Sabor"] == sabor_selecionado].iloc[0]
-            preco_unitario = detalhes_item["Preco"]
+            preco_unitario = float(detalhes_item["Preco"])
             max_qtd = int(detalhes_item["Estoque"])
             
             st.info(f"Categoria: **{detalhes_item['Categoria']}** | Preço Unitário: **R$ {preco_unitario:.2f}**")
@@ -353,10 +355,14 @@ else:
 
             st.divider()
 
+            # Descobre a URL base automaticamente da barra do navegador
+            url_atual = st.context.headers.get("host", "chupchup-mania.streamlit.app")
+            link_cliente = f"https://{url_atual}/?modo=cliente"
+
             st.subheader("📲 Link de Acesso do Cliente")
             st.write("Copie o link abaixo para enviar aos clientes ou colocar no Instagram:")
-            st.code("https://chupchup_mania.streamlit.app?modo=cliente")
+            st.code(link_cliente)
 
             st.write("QR Code gerado para o link do cliente:")
-            url_qr_cliente = obter_url_qr_code("https://chupchup_mania.streamlit.app?modo=cliente")
+            url_qr_cliente = obter_url_qr_code(link_cliente)
             st.image(url_qr_cliente, caption="QR Code do Cardápio", width=200)
