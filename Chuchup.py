@@ -12,8 +12,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- DEFINIÇÃO DA SENHA DO ADMINISTRADOR ---
-SENHA_ADMIN = "1234"  # 👈 DIGITE AQUI A SUA SENHA DESEJADA
+# --- SENHA DO ADMINISTRADOR ---
+SENHA_ADMIN = "1234"  # 👈 Altere para a senha de sua preferência
 
 # --- ARQUIVOS DE DADOS ---
 ARQUIVO_ESTOQUE = "estoque_chupchup.csv"
@@ -126,14 +126,14 @@ def obter_url_qr_code(texto):
 inicializar_arquivos()
 estoque_df, vendas_df, pedidos_df, config_pix = carregar_dados()
 
-# --- VERIFICAÇÃO DE MODO ADMIN ---
+# --- VERIFICAÇÃO DO MODO (CLIENTE OU ADM) ---
 query_params = st.query_params
-eh_admin = query_params.get("admin") == "true"
+eh_cliente = query_params.get("modo") == "cliente"
 
 # ==========================================
-# 📱 INTERFACE EXCLUSIVA DO CLIENTE (PADRÃO)
+# 📱 INTERFACE DO CLIENTE (Via link exclusivo)
 # ==========================================
-if not eh_admin:
+if eh_cliente:
     if os.path.exists(NOME_BANNER):
         st.image(NOME_BANNER, use_container_width=True)
 
@@ -210,17 +210,16 @@ if not eh_admin:
                         st.text_area("Copia e Cola Pix:", payload, height=100)
 
 # ==========================================
-# 🔐 PAINEL DO VENDEDOR (PROTEGIDO COM SENHA)
+# 🔐 MODO ADM (PADRÃO AO ABRIR O LINK NORMAL)
 # ==========================================
 else:
-    st.title("🔐 Login do Administrador")
+    st.title("🔐 Painel Administrativo")
 
-    # Inicializa o estado de autenticação na sessão
     if "autenticado" not in st.session_state:
         st.session_state["autenticado"] = False
 
     if not st.session_state["autenticado"]:
-        senha_input = st.text_input("Digite a senha para acessar o painel:", type="password")
+        senha_input = st.text_input("Digite a senha do administrador:", type="password")
         if st.button("Entrar"):
             if senha_input == SENHA_ADMIN:
                 st.session_state["autenticado"] = True
@@ -355,8 +354,9 @@ else:
             st.divider()
 
             st.subheader("📲 Link de Acesso do Cliente")
-            st.write("Link que os clientes usam para pedir (SEM acesso ao estoque):")
-            st.code("https://chupchup_mania.streamlit.app")
+            st.write("Copie o link abaixo para enviar aos clientes ou colocar no Instagram:")
+            st.code("https://chupchup_mania.streamlit.app?modo=cliente")
 
-            st.write("Link para VOCÊ gerenciar os pedidos e estoque (com senha):")
-            st.code("https://chupchup_mania.streamlit.app?admin=true")
+            st.write("QR Code gerado para o link do cliente:")
+            url_qr_cliente = obter_url_qr_code("https://chupchup_mania.streamlit.app?modo=cliente")
+            st.image(url_qr_cliente, caption="QR Code do Cardápio", width=200)
