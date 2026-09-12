@@ -1,24 +1,9 @@
-import os
-import sys
-
-# --- INSTALAÇÃO AUTOMÁTICA DE DEPENDÊNCIAS SE FALTAREM ---
-try:
-    import qrcode
-except ImportError:
-    os.system(f"{sys.executable} -m pip install qrcode Pillow pandas")
-    import qrcode
-
-try:
-    from PIL import Image
-except ImportError:
-    os.system(f"{sys.executable} -m pip install Pillow")
-    from PIL import Image
-
 import streamlit as st
 import pandas as pd
-from io import BytesIO
 from datetime import datetime
 import json
+import os
+import urllib.parse
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
@@ -90,7 +75,7 @@ def salvar_config(config):
     with open(ARQUIVO_CONFIG, "w") as f:
         json.dump(config, f)
 
-# --- GERADOR DE PIX EMV (BR CODE) ---
+# --- GERADOR DE PIX EMV (BR CODE) E QR CODE VIA API (SEM DEPENDÊNCIAS EXTERNAS) ---
 
 def calcular_crc16(payload):
     crc = 0xFFFF
@@ -130,14 +115,9 @@ def gerar_payload_pix(chave, nome, cidade, valor, txid="***"):
     crc = calcular_crc16(payload_sem_crc)
     return payload_sem_crc + crc
 
-def gerar_imagem_qr(texto):
-    qr = qrcode.QRCode(version=1, box_size=8, border=2)
-    qr.add_data(texto)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    buf = BytesIO()
-    img.save(buf)
-    return buf.getvalue()
+def obter_url_qr_code(texto):
+    texto_encoded = urllib.parse.quote(texto)
+    return f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={texto_encoded}"
 
 # --- INICIALIZAÇÃO DE DADOS ---
 inicializar_arquivos()
@@ -223,11 +203,11 @@ if opcao_menu == "📱 Fazer Pedido (Cliente)":
                         txid=novo_id[-10:]
                     )
                     
-                    qr_img = gerar_imagem_qr(payload)
+                    url_qr = obter_url_qr_code(payload)
                     
                     col1, col2 = st.columns([1, 2])
                     with col1:
-                        st.image(qr_img, width=220)
+                        st.image(url_qr, width=220)
                     with col2:
                         st.write(f"**Chave Pix:** {config_pix['chave_pix']}")
                         st.write(f"**Valor:** R$ {valor_total:.2f}")
@@ -356,20 +336,11 @@ elif opcao_menu == "⚙️ Configuração Pix / QRCodes":
 
     st.divider()
 
-    st.subheader("📲 Gerador de QR Code do Cardápio")
-    st.write("Gere um QR Code com a URL do seu aplicativo para imprimir e colar no seu carrinho/mesa.")
+    st.subheader("📲 QR Code do Cardápio")
+    st.write("Abra ou compartilhe o QR Code para os clientes entrarem no cardápio.")
 
     url_app = st.text_input("URL do App Publicado:", "https://chupchup-mania.streamlit.app")
     
     if url_app:
-        qr_cardapio = gerar_imagem_qr(url_app)
-        col_qr1, col_qr2 = st.columns([1, 2])
-        with col_qr1:
-            st.image(qr_cardapio, caption="QR Code para acesso do cliente", width=200)
-        with col_qr2:
-            st.download_button(
-                label="📥 Baixar QR Code do Cardápio",
-                data=qr_cardapio,
-                file_name="qr_code_cardapio_chupchup.png",
-                mime="image/png"
-            )
+        url_qr_cardapio = obter_url_qr_code(url_app)
+        st.image(url_qr_cardapio, caption="QR Code para acesso do cliente", width=200)
