@@ -1,8 +1,21 @@
+import os
+import sys
+
+# --- INSTALAÇÃO AUTOMÁTICA DE DEPENDÊNCIAS SE FALTAREM ---
+try:
+    import qrcode
+except ImportError:
+    os.system(f"{sys.executable} -m pip install qrcode Pillow pandas")
+    import qrcode
+
+try:
+    from PIL import Image
+except ImportError:
+    os.system(f"{sys.executable} -m pip install Pillow")
+    from PIL import Image
 
 import streamlit as st
 import pandas as pd
-import os
-import qrcode
 from io import BytesIO
 from datetime import datetime
 import json
@@ -19,7 +32,7 @@ ARQUIVO_ESTOQUE = "estoque_chupchup.csv"
 ARQUIVO_VENDAS = "historico_vendas.csv"
 ARQUIVO_PEDIDOS = "pedidos_pendentes.csv"
 ARQUIVO_CONFIG = "config_pix.json"
-NOME_BANNER = "banner.jpg"  # Nome do arquivo da imagem do cartaz no mesmo diretório
+NOME_BANNER = "banner.jpg"
 
 COLUNAS_ESTOQUE = ["Sabor", "Categoria", "Estoque", "Preco"]
 COLUNAS_VENDAS = ["ID", "Data_Hora", "Cliente", "Sabor", "Quantidade", "Valor_Total", "Forma_Pagamento"]
@@ -29,7 +42,6 @@ COLUNAS_PEDIDOS = ["ID", "Data_Hora", "Cliente", "Sabor", "Quantidade", "Valor_T
 
 def inicializar_arquivos():
     if not os.path.exists(ARQUIVO_ESTOQUE):
-        # Sabores extraídos diretamente da imagem do cartaz
         estoque_inicial = pd.DataFrame([
             {"Sabor": "Coco c/ abacaxi", "Categoria": "Gourmet", "Estoque": 15, "Preco": 5.00},
             {"Sabor": "Coco", "Categoria": "Tradicional", "Estoque": 15, "Preco": 4.00},
@@ -50,7 +62,7 @@ def inicializar_arquivos():
 
     if not os.path.exists(ARQUIVO_CONFIG):
         config_inicial = {
-            "chave_pix": "31993507169",  # Número de telefone que está no cartaz
+            "chave_pix": "31993507169",
             "nome_recebedor": "CHUP CHUP MANIA",
             "cidade_recebedor": "BELO HORIZONTE"
         }
@@ -78,7 +90,7 @@ def salvar_config(config):
     with open(ARQUIVO_CONFIG, "w") as f:
         json.dump(config, f)
 
-# --- GERADOR DE PIX EMV (COPIA E COLA / BR CODE) ---
+# --- GERADOR DE PIX EMV (BR CODE) ---
 
 def calcular_crc16(payload):
     crc = 0xFFFF
@@ -134,7 +146,6 @@ estoque_df, vendas_df, pedidos_df, config_pix = carregar_dados()
 # --- BARRA LATERAL (NAVEGAÇÃO) ---
 st.sidebar.title("🍦 Chup Chup Mania")
 
-# Exibe o banner reduzido na barra lateral
 if os.path.exists(NOME_BANNER):
     st.sidebar.image(NOME_BANNER, use_container_width=True)
 
@@ -147,7 +158,6 @@ opcao_menu = st.sidebar.radio(
 # 1. FAZER PEDIDO (INTERFACE DO CLIENTE)
 # ==========================================
 if opcao_menu == "📱 Fazer Pedido (Cliente)":
-    # Exibe o banner da loja em destaque no topo da página
     if os.path.exists(NOME_BANNER):
         st.image(NOME_BANNER, use_container_width=True)
 
@@ -243,13 +253,11 @@ elif opcao_menu == "📋 Pedidos Pendentes":
                 col1, col2 = st.columns(2)
                 with col1:
                     if st.button(f"✅ Entregar Pedido", key=f"entregar_{row['ID']}"):
-                        # Baixa no estoque
                         idx_est = estoque_df[estoque_df["Sabor"] == row["Sabor"]].index
                         if not idx_est.empty:
                             estoque_df.loc[idx_est, "Estoque"] -= row["Quantidade"]
                             salvar_estoque(estoque_df)
 
-                        # Adiciona ao histórico de vendas
                         nova_venda = {
                             "ID": row["ID"],
                             "Data_Hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -262,7 +270,6 @@ elif opcao_menu == "📋 Pedidos Pendentes":
                         vendas_df = pd.concat([vendas_df, pd.DataFrame([nova_venda])], ignore_index=True)
                         salvar_vendas(vendas_df)
 
-                        # Atualiza status
                         pedidos_df.loc[pedidos_df["ID"] == row["ID"], "Status"] = "Concluído"
                         salvar_pedidos(pedidos_df)
 
@@ -352,7 +359,7 @@ elif opcao_menu == "⚙️ Configuração Pix / QRCodes":
     st.subheader("📲 Gerador de QR Code do Cardápio")
     st.write("Gere um QR Code com a URL do seu aplicativo para imprimir e colar no seu carrinho/mesa.")
 
-    url_app = st.text_input("URL do App Publicado (ex: https://chupchupmania.streamlit.app):", "http://localhost:8501")
+    url_app = st.text_input("URL do App Publicado:", "https://chupchup-mania.streamlit.app")
     
     if url_app:
         qr_cardapio = gerar_imagem_qr(url_app)
