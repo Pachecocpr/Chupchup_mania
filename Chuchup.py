@@ -5,7 +5,7 @@ import json
 import os
 import urllib.parse
 
-# --- CONFIGURAÇÃO DA PÁGINA (Sidebar sempre aberta por padrão) ---
+# --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Gestão - Chup Chup Mania", 
     page_icon="🍦", 
@@ -13,10 +13,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- APLICAÇÃO DE CSS PERSONALIZADO ---
+# --- APLICAÇÃO DE CSS PERSONALIZADO (CORREÇÃO DE CORES DA SIDEBAR) ---
 st.markdown("""
     <style>
-    /* Oculta marca d'água do rodapé sem esconder o botão de abrir sidebar */
+    /* Esconde elementos nativos do Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
@@ -24,6 +24,36 @@ st.markdown("""
     .stApp {
         background-color: #F8F9FA;
         font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* --------------------------------------------------
+       CORREÇÃO DE COR DAS LETRAS NA BARRA LATERAL (SIDEBAR)
+       -------------------------------------------------- */
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E9ECEF;
+    }
+
+    /* Textos, títulos e rótulos da barra lateral */
+    section[data-testid="stSidebar"] *, 
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span {
+        color: #212529 !important;
+        font-weight: 600 !important;
+    }
+
+    /* Título do menu lateral */
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3 {
+        color: #4A154B !important;
+        font-weight: 700 !important;
+    }
+
+    /* Estilização dos itens de rádio selecionados na Sidebar */
+    div[data-testid="stMarkdownContainer"] p {
+        color: #212529 !important;
     }
 
     /* Estilização de Cards e Formulários */
@@ -35,7 +65,7 @@ st.markdown("""
         border: 1px solid #E9ECEF;
     }
 
-    /* Títulos */
+    /* Títulos da área principal */
     h1, h2, h3 {
         color: #4A154B !important;
         font-weight: 700 !important;
@@ -58,12 +88,6 @@ st.markdown("""
     div[data-testid="stFormSubmitButton"] > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35) !important;
-    }
-
-    /* Menu Lateral (Sidebar) */
-    section[data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        border-right: 1px solid #E9ECEF;
     }
 
     /* Cards de Métricas */
@@ -340,7 +364,7 @@ else:
             pedidos_pendentes = pedidos_df[pedidos_df["Status"] == "Pendente"]
 
             if pedidos_pendentes.empty:
-                st.info("Nenhum pedido pendente na fila no momento.")
+                st.info("Nenum pedido pendente na fila no momento.")
             else:
                 for idx, row in pedidos_pendentes.iterrows():
                     with st.expander(f"Pedido #{row['ID']} — {row['Cliente']} (R$ {row['Valor_Total']:.2f})"):
