@@ -5,20 +5,20 @@ import json
 import os
 import urllib.parse
 
-# --- CONFIGURAÇÃO DA PÁGINA ---
+# --- CONFIGURAÇÃO DA PÁGINA (Sidebar sempre aberta por padrão) ---
 st.set_page_config(
     page_title="Gestão - Chup Chup Mania", 
     page_icon="🍦", 
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# --- APLICAÇÃO DE CSS PERSONALIZADO (DESIGN PROFISSIONAL) ---
+# --- APLICAÇÃO DE CSS PERSONALIZADO ---
 st.markdown("""
     <style>
-    /* Esconde elementos nativos do Streamlit */
+    /* Oculta marca d'água do rodapé sem esconder o botão de abrir sidebar */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
 
     /* Fundo geral */
     .stApp {
