@@ -12,8 +12,80 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- APLICAÇÃO DE CSS PERSONALIZADO (DESIGN PROFISSIONAL) ---
+st.markdown("""
+    <style>
+    /* Oculta marcas d'água e menus desnecessários do Streamlit */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+
+    /* Fundo da aplicação */
+    .stApp {
+        background-color: #FAFAFA;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Estilização de Cartões / Containers */
+    div[data-testid="stForm"] {
+        background-color: #FFFFFF;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #EFEFEF;
+    }
+
+    /* Títulos e Cabeçalhos */
+    h1, h2, h3 {
+        color: #7A2E12 !important;
+        font-weight: 700 !important;
+    }
+
+    /* Botão Principal do Formulário */
+    div[data-testid="stFormSubmitButton"] > button {
+        background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%) !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 18px !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 12px 24px !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3) !important;
+    }
+
+    div[data-testid="stFormSubmitButton"] > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4) !important;
+    }
+
+    /* Botões Padrão (Entregar / Cancelar) */
+    .stButton > button {
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+
+    /* Caixas de Texto / Inputs */
+    .stTextInput input, .stSelectbox select, .stNumberInput input {
+        border-radius: 8px !important;
+        border: 1px solid #DDD !important;
+    }
+
+    /* Caixas de Alerta (Sucesso, Info, Warning) */
+    .stAlert {
+        border-radius: 12px !important;
+    }
+    
+    /* Imagem do Banner */
+    img {
+        border-radius: 14px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- SENHA DO ADMINISTRADOR ---
-SENHA_ADMIN = "1234"  # 👈 Altere para a senha de sua preferência
+SENHA_ADMIN = "1234"
 
 # --- ARQUIVOS DE DADOS ---
 ARQUIVO_ESTOQUE = "estoque_chupchup.csv"
@@ -355,7 +427,6 @@ else:
 
             st.divider()
 
-            # Descobre a URL base automaticamente da barra do navegador
             url_atual = st.context.headers.get("host", "chupchup-mania.streamlit.app")
             link_cliente = f"https://{url_atual}/?modo=cliente"
 
