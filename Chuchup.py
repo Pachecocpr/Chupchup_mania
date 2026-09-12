@@ -7,7 +7,7 @@ import urllib.parse
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
-    page_title="Chup Chup Mania", 
+    page_title="Gestão - Chup Chup Mania", 
     page_icon="🍦", 
     layout="wide"
 )
@@ -15,71 +15,75 @@ st.set_page_config(
 # --- APLICAÇÃO DE CSS PERSONALIZADO (DESIGN PROFISSIONAL) ---
 st.markdown("""
     <style>
-    /* Oculta marcas d'água e menus desnecessários do Streamlit */
+    /* Esconde elementos nativos do Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Fundo da aplicação */
+    /* Fundo geral */
     .stApp {
-        background-color: #FAFAFA;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #F8F9FA;
+        font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
     }
 
-    /* Estilização de Cartões / Containers */
+    /* Estilização de Cards e Formulários */
     div[data-testid="stForm"] {
         background-color: #FFFFFF;
         border-radius: 16px;
-        padding: 25px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border: 1px solid #EFEFEF;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid #E9ECEF;
     }
 
-    /* Títulos e Cabeçalhos */
+    /* Títulos */
     h1, h2, h3 {
-        color: #7A2E12 !important;
+        color: #4A154B !important;
         font-weight: 700 !important;
     }
 
-    /* Botão Principal do Formulário */
+    /* Botão Principal de Formulários */
     div[data-testid="stFormSubmitButton"] > button {
         background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%) !important;
         color: white !important;
-        font-weight: bold !important;
-        font-size: 18px !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
         border: none !important;
-        border-radius: 12px !important;
-        padding: 12px 24px !important;
+        border-radius: 10px !important;
+        padding: 10px 20px !important;
         width: 100% !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25) !important;
     }
 
     div[data-testid="stFormSubmitButton"] > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4) !important;
+        box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35) !important;
     }
 
-    /* Botões Padrão (Entregar / Cancelar) */
-    .stButton > button {
-        border-radius: 8px !important;
-        font-weight: 600 !important;
+    /* Menu Lateral (Sidebar) */
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E9ECEF;
     }
 
-    /* Caixas de Texto / Inputs */
+    /* Cards de Métricas */
+    div[data-testid="stMetric"] {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid #E9ECEF;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    /* Caixas de Texto e Inputs */
     .stTextInput input, .stSelectbox select, .stNumberInput input {
         border-radius: 8px !important;
-        border: 1px solid #DDD !important;
+        border: 1px solid #CED4DA !important;
     }
 
-    /* Caixas de Alerta (Sucesso, Info, Warning) */
-    .stAlert {
-        border-radius: 12px !important;
-    }
-    
-    /* Imagem do Banner */
+    /* Imagens gerais */
     img {
-        border-radius: 14px !important;
+        border-radius: 12px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -194,18 +198,17 @@ def obter_url_qr_code(texto):
     texto_encoded = urllib.parse.quote(texto)
     return f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={texto_encoded}"
 
-# --- GARANTE INICIALIZAÇÃO E CARREGAMENTO ---
+# --- CARREGAMENTO INICIAL ---
 inicializar_arquivos()
 estoque_df, vendas_df, pedidos_df, config_pix = carregar_dados()
 
-# --- DETECÇÃO DO PARÂMETRO DA URL ---
 try:
     eh_cliente = st.query_params.get("modo") == "cliente"
 except Exception:
     eh_cliente = False
 
 # ==========================================
-# 📱 INTERFACE DO CLIENTE (Via link exclusivo)
+# 📱 INTERFACE DO CLIENTE
 # ==========================================
 if eh_cliente:
     if os.path.exists(NOME_BANNER):
@@ -284,55 +287,70 @@ if eh_cliente:
                         st.text_area("Copia e Cola Pix:", payload, height=100)
 
 # ==========================================
-# 🔐 MODO ADM (PADRÃO AO ABRIR O LINK NORMAL)
+# 📊 GESTÃO CHUP CHUP MANIA (MODO ADM)
 # ==========================================
 else:
-    st.title("🔐 Painel Administrativo")
+    col_logo, col_titulo = st.columns([1, 4])
+    with col_logo:
+        if os.path.exists(NOME_BANNER):
+            st.image(NOME_BANNER, width=110)
+    with col_titulo:
+        st.title("📊 Gestão Chup Chup Mania")
+        st.write("Sistema Integrado de Vendas, Pedidos e Controle de Estoque")
+
+    st.divider()
 
     if "autenticado" not in st.session_state:
         st.session_state["autenticado"] = False
 
     if not st.session_state["autenticado"]:
-        senha_input = st.text_input("Digite a senha do administrador:", type="password")
-        if st.button("Entrar"):
-            if senha_input == SENHA_ADMIN:
-                st.session_state["autenticado"] = True
-                st.success("Acesso liberado!")
-                st.rerun()
-            else:
-                st.error("Senha incorreta!")
+        col_login, _ = st.columns([2, 1])
+        with col_login:
+            with st.form("form_login"):
+                st.subheader("🔑 Acesso Restrito")
+                senha_input = st.text_input("Senha de Acesso:", type="password")
+                btn_entrar = st.form_submit_button("Acessar Painel")
+
+                if btn_entrar:
+                    if senha_input == SENHA_ADMIN:
+                        st.session_state["autenticado"] = True
+                        st.success("Acesso autorizado com sucesso!")
+                        st.rerun()
+                    else:
+                        st.error("Senha de acesso incorreta.")
     else:
-        st.sidebar.title("🔐 Painel Administrativo")
+        st.sidebar.title("⚙️ Painel de Gestão")
         
         if os.path.exists(NOME_BANNER):
             st.sidebar.image(NOME_BANNER, use_container_width=True)
 
-        if st.sidebar.button("🚪 Sair do Painel"):
+        if st.sidebar.button("🚪 Sair do Sistema"):
             st.session_state["autenticado"] = False
             st.rerun()
 
         opcao_menu = st.sidebar.radio(
-            "Gerenciamento",
-            ["📋 Pedidos Pendentes", "📦 Estoque", "📊 Histórico de Vendas", "⚙️ Configuração Pix / QRCodes"]
+            "Navegação",
+            ["📋 Fila de Pedidos", "📦 Controle de Estoque", "📊 Relatório de Vendas", "⚙️ Configurações & QR Code"]
         )
 
-        if opcao_menu == "📋 Pedidos Pendentes":
+        # 1. FILA DE PEDIDOS
+        if opcao_menu == "📋 Fila de Pedidos":
             st.header("📋 Fila de Pedidos Recebidos")
             
             pedidos_pendentes = pedidos_df[pedidos_df["Status"] == "Pendente"]
 
             if pedidos_pendentes.empty:
-                st.info("Nenhum pedido pendente no momento.")
+                st.info("Nenhum pedido pendente na fila no momento.")
             else:
                 for idx, row in pedidos_pendentes.iterrows():
-                    with st.expander(f"Pedido #{row['ID']} - {row['Cliente']} (R$ {row['Valor_Total']:.2f})"):
+                    with st.expander(f"Pedido #{row['ID']} — {row['Cliente']} (R$ {row['Valor_Total']:.2f})"):
                         st.write(f"**Data/Hora:** {row['Data_Hora']}")
                         st.write(f"**Sabor:** {row['Sabor']} x {row['Quantidade']}")
-                        st.write(f"**Pagamento:** {row['Forma_Pagamento']}")
+                        st.write(f"**Forma de Pagamento:** {row['Forma_Pagamento']}")
                         
                         col1, col2 = st.columns(2)
                         with col1:
-                            if st.button(f"✅ Entregar Pedido", key=f"entregar_{row['ID']}"):
+                            if st.button(f"✅ Concluir Pedido", key=f"entregar_{row['ID']}"):
                                 idx_est = estoque_df[estoque_df["Sabor"] == row["Sabor"]].index
                                 if not idx_est.empty:
                                     estoque_df.loc[idx_est, "Estoque"] -= row["Quantidade"]
@@ -353,29 +371,29 @@ else:
                                 pedidos_df.loc[pedidos_df["ID"] == row["ID"], "Status"] = "Concluído"
                                 salvar_pedidos(pedidos_df)
 
-                                st.success("Pedido concluído e estoque baixado!")
+                                st.success("Pedido concluído e faturamento atualizado!")
                                 st.rerun()
 
                         with col2:
-                            if st.button(f"❌ Cancelar Pedido", key=f"cancelar_{row['ID']}"):
+                            if st.button(f"❌ Cancelar", key=f"cancelar_{row['ID']}"):
                                 pedidos_df.loc[pedidos_df["ID"] == row["ID"], "Status"] = "Cancelado"
                                 salvar_pedidos(pedidos_df)
-                                st.warning("Pedido cancelado.")
+                                st.warning("Pedido cancelado com sucesso.")
                                 st.rerun()
 
-        elif opcao_menu == "📦 Estoque":
-            st.header("📦 Gerenciamento de Estoque")
-
+        # 2. CONTROLE DE ESTOQUE
+        elif opcao_menu == "📦 Controle de Estoque":
+            st.header("📦 Estoque Atual")
             st.dataframe(estoque_df, use_container_width=True)
 
-            st.subheader("➕ Adicionar ou Editar Sabor")
+            st.subheader("➕ Atualizar ou Cadastrar Sabor")
             with st.form("form_estoque"):
-                sabor = st.text_input("Sabor do Chup Chup:")
+                sabor = st.text_input("Sabor do Geladinho:")
                 categoria = st.selectbox("Categoria:", ["Gourmet", "Tradicional", "Fruta", "Ao Leite", "Alcoólico"])
                 qtd = st.number_input("Quantidade em Estoque:", min_value=0, value=15)
-                preco = st.number_input("Preço de Venda (R$):", min_value=0.0, value=5.00, step=0.50)
+                preco = st.number_input("Preço Unitário (R$):", min_value=0.0, value=5.00, step=0.50)
 
-                btn_salvar = st.form_submit_button("Salvar")
+                btn_salvar = st.form_submit_button("Atualizar Estoque")
 
                 if btn_salvar:
                     if not sabor.strip():
@@ -388,52 +406,54 @@ else:
                             estoque_df = pd.concat([estoque_df, pd.DataFrame([novo_item])], ignore_index=True)
 
                         salvar_estoque(estoque_df)
-                        st.success(f"Sabor **{sabor}** atualizado no estoque!")
+                        st.success(f"Estoque de **{sabor}** atualizado!")
                         st.rerun()
 
-        elif opcao_menu == "📊 Histórico de Vendas":
-            st.header("📊 Vendas e Faturamento")
+        # 3. RELATÓRIO DE VENDAS
+        elif opcao_menu == "📊 Relatório de Vendas":
+            st.header("📊 Faturamento e Desempenho")
 
             if vendas_df.empty:
-                st.info("Nenhuma venda registrada ainda.")
+                st.info("Nenhuma venda registrada até o momento.")
             else:
                 faturamento_total = vendas_df["Valor_Total"].sum()
                 total_itens = vendas_df["Quantidade"].sum()
 
                 col1, col2 = st.columns(2)
-                col1.metric("💰 Faturamento Total", f"R$ {faturamento_total:.2f}")
-                col2.metric("🍦 Chup Chups Vendidos", f"{total_itens} un")
+                col1.metric("💰 Faturamento Acumulado", f"R$ {faturamento_total:.2f}")
+                col2.metric("🍦 Total de Unidades Vendidas", f"{total_itens} un")
 
-                st.subheader("Detalhamento")
+                st.subheader("Histórico Detalhado")
                 st.dataframe(vendas_df.sort_values(by="Data_Hora", ascending=False), use_container_width=True)
 
-        elif opcao_menu == "⚙️ Configuração Pix / QRCodes":
-            st.header("⚙️ Configurações de Pagamento e Cardápio")
+        # 4. CONFIGURAÇÕES & QR CODE
+        elif opcao_menu == "⚙️ Configurações & QR Code":
+            st.header("⚙️ Configurações Gerais")
 
-            st.subheader("🔑 Configuração da Chave Pix")
+            st.subheader("🔑 Cadastro da Chave Pix")
             with st.form("form_config_pix"):
-                chave = st.text_input("Chave Pix (Telefone, CPF, E-mail ou Aleatória):", value=config_pix["chave_pix"])
-                nome = st.text_input("Nome do Titular/Estabelecimento:", value=config_pix["nome_recebedor"])
-                cidade = st.text_input("Cidade do Titular:", value=config_pix["cidade_recebedor"])
+                chave = st.text_input("Chave Pix:", value=config_pix["chave_pix"])
+                nome = st.text_input("Nome do Titular:", value=config_pix["nome_recebedor"])
+                cidade = st.text_input("Cidade:", value=config_pix["cidade_recebedor"])
 
-                btn_salvar_pix = st.form_submit_button("Salvar Configurações Pix")
+                btn_salvar_pix = st.form_submit_button("Salvar Dados Pix")
 
                 if btn_salvar_pix:
                     config_pix["chave_pix"] = chave
                     config_pix["nome_recebedor"] = nome
                     config_pix["cidade_recebedor"] = cidade
                     salvar_config(config_pix)
-                    st.success("Dados do Pix salvos com sucesso!")
+                    st.success("Configurações do Pix atualizadas com sucesso!")
 
             st.divider()
 
             url_atual = st.context.headers.get("host", "chupchup-mania.streamlit.app")
             link_cliente = f"https://{url_atual}/?modo=cliente"
 
-            st.subheader("📲 Link de Acesso do Cliente")
-            st.write("Copie o link abaixo para enviar aos clientes ou colocar no Instagram:")
+            st.subheader("📲 Link e QR Code do Cardápio Digital")
+            st.write("Link exclusivo para envio aos clientes:")
             st.code(link_cliente)
 
-            st.write("QR Code gerado para o link do cliente:")
+            st.write("QR Code gerado para o cardápio dos clientes:")
             url_qr_cliente = obter_url_qr_code(link_cliente)
-            st.image(url_qr_cliente, caption="QR Code do Cardápio", width=200)
+            st.image(url_qr_cliente, caption="Cardápio Digital Chup Chup Mania", width=220)
