@@ -7,105 +7,102 @@ import urllib.parse
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
-    page_title="Gestão - Chup Chup Mania", 
-    page_icon="🍦", 
+    page_title="Gestão Chup Chup Mania - NextGen", 
+    page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- APLICAÇÃO DE CSS PERSONALIZADO (CORREÇÃO DE CORES DA SIDEBAR) ---
+# --- APLICAÇÃO DE CSS FUTURISTA (DARK NEON TECH) ---
 st.markdown("""
     <style>
-    /* Esconde elementos nativos do Streamlit */
+    /* Oculta marcas d'água e elementos nativos desnecessários */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
-    /* Fundo geral */
+    /* Estilização e Destaque do Botão Sanduíche (Sidebar Toggle) */
+    button[data-testid="stHeaderIconButton"] {
+        color: #00F0FF !important;
+        background-color: rgba(0, 240, 255, 0.1) !important;
+        border: 1px solid #00F0FF !important;
+        border-radius: 8px !important;
+    }
+
+    /* Fundo Geral da Aplicação */
     .stApp {
-        background-color: #F8F9FA;
-        font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #0A0E17 0%, #161F33 100%) !important;
+        font-family: 'Segoe UI', Roboto, sans-serif !important;
+        color: #E2E8F0 !important;
     }
 
-    /* --------------------------------------------------
-       CORREÇÃO DE COR DAS LETRAS NA BARRA LATERAL (SIDEBAR)
-       -------------------------------------------------- */
-    section[data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        border-right: 1px solid #E9ECEF;
+    /* Cards e Containers Futuristas */
+    div[data-testid="stForm"], div[data-testid="stExpander"] {
+        background: rgba(15, 23, 42, 0.75) !important;
+        border-radius: 16px !important;
+        padding: 24px !important;
+        border: 1px solid rgba(0, 240, 255, 0.2) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 240, 255, 0.1) !important;
+        backdrop-filter: blur(12px) !important;
     }
 
-    /* Textos, títulos e rótulos da barra lateral */
-    section[data-testid="stSidebar"] *, 
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] span {
-        color: #212529 !important;
-        font-weight: 600 !important;
-    }
-
-    /* Título do menu lateral */
-    section[data-testid="stSidebar"] h1, 
-    section[data-testid="stSidebar"] h2, 
-    section[data-testid="stSidebar"] h3 {
-        color: #4A154B !important;
-        font-weight: 700 !important;
-    }
-
-    /* Estilização dos itens de rádio selecionados na Sidebar */
-    div[data-testid="stMarkdownContainer"] p {
-        color: #212529 !important;
-    }
-
-    /* Estilização de Cards e Formulários */
-    div[data-testid="stForm"] {
-        background-color: #FFFFFF;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-        border: 1px solid #E9ECEF;
-    }
-
-    /* Títulos da área principal */
+    /* Títulos em Neon */
     h1, h2, h3 {
-        color: #4A154B !important;
+        color: #00F0FF !important;
+        text-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
         font-weight: 700 !important;
     }
 
-    /* Botão Principal de Formulários */
+    /* Botão Principal em Gradiente Neon */
     div[data-testid="stFormSubmitButton"] > button {
-        background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%) !important;
-        color: white !important;
+        background: linear-gradient(90deg, #7928CA 0%, #FF0080 100%) !important;
+        color: #FFFFFF !important;
         font-weight: 700 !important;
         font-size: 16px !important;
         border: none !important;
         border-radius: 10px !important;
-        padding: 10px 20px !important;
+        padding: 12px 24px !important;
         width: 100% !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25) !important;
+        box-shadow: 0 0 15px rgba(255, 0, 128, 0.4) !important;
     }
 
     div[data-testid="stFormSubmitButton"] > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35) !important;
+        transform: scale(1.02) !important;
+        box-shadow: 0 0 25px rgba(255, 0, 128, 0.7) !important;
+    }
+
+    /* Barra Lateral Futurista */
+    section[data-testid="stSidebar"] {
+        background-color: #0D1117 !important;
+        border-right: 1px solid rgba(0, 240, 255, 0.2) !important;
+    }
+
+    section[data-testid="stSidebar"] *, 
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span {
+        color: #CBD5E1 !important;
+        font-weight: 600 !important;
     }
 
     /* Cards de Métricas */
     div[data-testid="stMetric"] {
-        background-color: #FFFFFF;
-        border-radius: 12px;
-        padding: 16px;
-        border: 1px solid #E9ECEF;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        background: rgba(15, 23, 42, 0.8) !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+        border: 1px solid rgba(255, 0, 128, 0.3) !important;
+        box-shadow: 0 0 12px rgba(255, 0, 128, 0.15) !important;
     }
 
-    /* Caixas de Texto e Inputs */
+    /* Inputs e Selects com Borda Glow */
     .stTextInput input, .stSelectbox select, .stNumberInput input {
+        background-color: #090D16 !important;
+        color: #00F0FF !important;
         border-radius: 8px !important;
-        border: 1px solid #CED4DA !important;
+        border: 1px solid rgba(0, 240, 255, 0.3) !important;
     }
 
-    /* Imagens gerais */
+    /* Imagens com Borda Neon */
     img {
         border-radius: 12px !important;
     }
@@ -114,6 +111,9 @@ st.markdown("""
 
 # --- SENHA DO ADMINISTRADOR ---
 SENHA_ADMIN = "1234"
+
+# --- URL DA IMAGEM DO PIX BANCO CENTRAL ---
+URL_PIX_BACEN = "https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo%E2%80%94pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg"
 
 # --- ARQUIVOS DE DADOS ---
 ARQUIVO_ESTOQUE = "estoque_chupchup.csv"
@@ -319,7 +319,7 @@ else:
         if os.path.exists(NOME_BANNER):
             st.image(NOME_BANNER, width=110)
     with col_titulo:
-        st.title("📊 Gestão Chup Chup Mania")
+        st.title("⚡ Gestão Chup Chup Mania")
         st.write("Sistema Integrado de Vendas, Pedidos e Controle de Estoque")
 
     st.divider()
@@ -364,7 +364,7 @@ else:
             pedidos_pendentes = pedidos_df[pedidos_df["Status"] == "Pendente"]
 
             if pedidos_pendentes.empty:
-                st.info("Nenum pedido pendente na fila no momento.")
+                st.info("Nenhum pedido pendente na fila no momento.")
             else:
                 for idx, row in pedidos_pendentes.iterrows():
                     with st.expander(f"Pedido #{row['ID']} — {row['Cliente']} (R$ {row['Valor_Total']:.2f})"):
@@ -433,7 +433,7 @@ else:
                         st.success(f"Estoque de **{sabor}** atualizado!")
                         st.rerun()
 
-        # 3. RELATÓRIO DE VENDAS
+        # 3. RELATÓRIO DE VENDAS (COM BOTÃO DE DEVOLUÇÃO AO ESTOQUE)
         elif opcao_menu == "📊 Relatório de Vendas":
             st.header("📊 Faturamento e Desempenho")
 
@@ -447,14 +447,44 @@ else:
                 col1.metric("💰 Faturamento Acumulado", f"R$ {faturamento_total:.2f}")
                 col2.metric("🍦 Total de Unidades Vendidas", f"{total_itens} un")
 
+                st.subheader("Cancelar Venda e Retornar ao Estoque")
+                venda_selecionada_id = st.selectbox(
+                    "Selecione o ID da Venda para Cancelar:", 
+                    vendas_df["ID"].unique()
+                )
+
+                if st.button("🔄 Cancelar Venda Selecionada e Estornar Estoque"):
+                    venda_info = vendas_df[vendas_df["ID"] == venda_selecionada_id].iloc[0]
+                    sabor_venda = venda_info["Sabor"]
+                    qtd_venda = int(venda_info["Quantidade"])
+
+                    # Devolve a quantidade para o estoque
+                    idx_est = estoque_df[estoque_df["Sabor"] == sabor_venda].index
+                    if not idx_est.empty:
+                        estoque_df.loc[idx_est, "Estoque"] += qtd_venda
+                        salvar_estoque(estoque_df)
+
+                    # Remove da tabela de vendas
+                    vendas_df = vendas_df[vendas_df["ID"] != venda_selecionada_id]
+                    salvar_vendas(vendas_df)
+
+                    st.success(f"Venda {venda_selecionada_id} cancelada! {qtd_venda} unidade(s) de '{sabor_venda}' retornaram ao estoque.")
+                    st.rerun()
+
+                st.divider()
                 st.subheader("Histórico Detalhado")
                 st.dataframe(vendas_df.sort_values(by="Data_Hora", ascending=False), use_container_width=True)
 
-        # 4. CONFIGURAÇÕES & QR CODE
+        # 4. CONFIGURAÇÕES & QR CODE (COM LOGO BANCO CENTRAL PIX)
         elif opcao_menu == "⚙️ Configurações & QR Code":
             st.header("⚙️ Configurações Gerais")
 
-            st.subheader("🔑 Cadastro da Chave Pix")
+            col_pix_logo, col_pix_tit = st.columns([1, 4])
+            with col_pix_logo:
+                st.image(URL_PIX_BACEN, width=120)
+            with col_pix_tit:
+                st.subheader("🔑 Cadastro da Chave Pix (Banco Central)")
+
             with st.form("form_config_pix"):
                 chave = st.text_input("Chave Pix:", value=config_pix["chave_pix"])
                 nome = st.text_input("Nome do Titular:", value=config_pix["nome_recebedor"])
