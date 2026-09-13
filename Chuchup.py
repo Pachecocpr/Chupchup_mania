@@ -8,7 +8,7 @@ import urllib.parse
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Gestão Chup Chup Mania - NextGen", 
-    page_icon="⚡", 
+    page_icon="🍦", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -311,7 +311,7 @@ if eh_cliente:
                         st.text_area("Copia e Cola Pix:", payload, height=100)
 
 # ==========================================
-# 📊 GESTÃO CHUP CHUP MANIA (MODO ADM)
+# 🍦 GESTÃO CHUP CHUP MANIA (MODO ADM)
 # ==========================================
 else:
     col_logo, col_titulo = st.columns([1, 4])
@@ -319,7 +319,7 @@ else:
         if os.path.exists(NOME_BANNER):
             st.image(NOME_BANNER, width=110)
     with col_titulo:
-        st.title("⚡ Gestão Chup Chup Mania")
+        st.title("🍦 Gestão Chup Chup Mania")
         st.write("Sistema Integrado de Vendas, Pedidos e Controle de Estoque")
 
     st.divider()
@@ -331,7 +331,7 @@ else:
         col_login, _ = st.columns([2, 1])
         with col_login:
             with st.form("form_login"):
-                st.subheader("🔑 Acesso Restrito")
+                st.subheader("Acesso Restrito")
                 senha_input = st.text_input("Senha de Acesso:", type="password")
                 btn_entrar = st.form_submit_button("Acessar Painel")
 
@@ -483,7 +483,7 @@ else:
             with col_pix_logo:
                 st.image(URL_PIX_BACEN, width=120)
             with col_pix_tit:
-                st.subheader("🔑 Cadastro da Chave Pix (Banco Central)")
+                st.subheader("Cadastro da Chave Pix (Banco Central)")
 
             with st.form("form_config_pix"):
                 chave = st.text_input("Chave Pix:", value=config_pix["chave_pix"])
