@@ -8,7 +8,7 @@ import urllib.parse
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Gestão Chup Chup Mania - NextGen", 
-    page_icon="🍦", 
+    page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -36,7 +36,7 @@ st.markdown("""
     }
 
     /* Cards e Containers Futuristas */
-    div[data-testid="stForm"], div[data-testid="stExpander"] {
+    div[data-testid="stForm"], div[data-testid="stExpander"], div.stContainer {
         background: rgba(15, 23, 42, 0.75) !important;
         border-radius: 16px !important;
         padding: 24px !important;
@@ -53,20 +53,19 @@ st.markdown("""
     }
 
     /* Botão Principal em Gradiente Neon */
-    div[data-testid="stFormSubmitButton"] > button {
+    div[data-testid="stFormSubmitButton"] > button, .stButton > button {
         background: linear-gradient(90deg, #7928CA 0%, #FF0080 100%) !important;
         color: #FFFFFF !important;
         font-weight: 700 !important;
-        font-size: 16px !important;
+        font-size: 15px !important;
         border: none !important;
         border-radius: 10px !important;
-        padding: 12px 24px !important;
-        width: 100% !important;
+        padding: 10px 20px !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 0 15px rgba(255, 0, 128, 0.4) !important;
     }
 
-    div[data-testid="stFormSubmitButton"] > button:hover {
+    div[data-testid="stFormSubmitButton"] > button:hover, .stButton > button:hover {
         transform: scale(1.02) !important;
         box-shadow: 0 0 25px rgba(255, 0, 128, 0.7) !important;
     }
@@ -112,9 +111,9 @@ st.markdown("""
 # --- SENHA DO ADMINISTRADOR ---
 SENHA_ADMIN = "1234"
 
-# --- ARQUIVOS DE IMAGENS LOCAL ---
+# --- URL DIRETA DA LOGO DO PIX ---
+URL_PIX_LOGO = "https://raw.githubusercontent.com/bacen/pix-dict-api/master/docs/logo-pix.png"
 NOME_BANNER = "banner.jpg"
-NOME_PIX = "pix.png"
 
 # --- ARQUIVOS DE DADOS ---
 ARQUIVO_ESTOQUE = "estoque_chupchup.csv"
@@ -232,83 +231,128 @@ except Exception:
     eh_cliente = False
 
 # ==========================================
-# 📱 INTERFACE DO CLIENTE
+# 📱 INTERFACE DO CLIENTE (COM MULTI-SABORES)
 # ==========================================
 if eh_cliente:
     if os.path.exists(NOME_BANNER):
         st.image(NOME_BANNER, use_container_width=True)
 
     st.header("🍦 Faça seu Pedido Online")
-    st.write("Escolha seus sabores preferidos e garanta o seu geladinho!")
+    st.write("Monte seu carrinho com seus sabores preferidos antes de fechar o pedido!")
+
+    if "carrinho" not in st.session_state:
+        st.session_state["carrinho"] = []
 
     estoque_disponivel = estoque_df[estoque_df["Estoque"] > 0]
 
     if estoque_disponivel.empty:
         st.warning("Desculpe, todos os nossos chup chups estão esgotados no momento! 😢")
     else:
-        with st.form("form_pedido"):
-            cliente_nome = st.text_input("Seu Nome:")
-            
-            sabor_selecionado = st.selectbox("Escolha o Sabor:", estoque_disponivel["Sabor"].unique())
-            
+        # --- ETAPA 1: ADICIONAR ITENS AO CARRINHO ---
+        st.subheader("1. Escolha o Sabor e Quantidade")
+        col_sabor, col_qtd, col_btn = st.columns([3, 2, 2])
+        
+        with col_sabor:
+            sabor_selecionado = st.selectbox("Sabor:", estoque_disponivel["Sabor"].unique())
             detalhes_item = estoque_disponivel[estoque_disponivel["Sabor"] == sabor_selecionado].iloc[0]
             preco_unitario = float(detalhes_item["Preco"])
             max_qtd = int(detalhes_item["Estoque"])
-            
-            st.info(f"Categoria: **{detalhes_item['Categoria']}** | Preço Unitário: **R$ {preco_unitario:.2f}**")
 
-            quantidade = st.number_input("Quantidade:", min_value=1, max_value=max_qtd, value=1)
-            forma_pagamento = st.selectbox("Forma de Pagamento:", ["Pix", "Dinheiro", "Cartão de Crédito/Débito"])
+        with col_qtd:
+            quantidade = st.number_input("Qtd:", min_value=1, max_value=max_qtd, value=1)
 
-            valor_total = preco_unitario * quantidade
-            st.markdown(f"### **Total: R$ {valor_total:.2f}**")
-
-            btn_confirmar = st.form_submit_button("🛒 Confirmar Pedido")
-
-        if btn_confirmar:
-            if not cliente_nome.strip():
-                st.error("Por favor, informe seu nome para identificarmos o pedido.")
-            else:
-                novo_id = f"PED-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-                data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-                novo_pedido = {
-                    "ID": novo_id,
-                    "Data_Hora": data_hora,
-                    "Cliente": cliente_nome,
+        with col_btn:
+            st.write("&nbsp;")
+            if st.button("➕ Adicionar"):
+                st.session_state["carrinho"].append({
                     "Sabor": sabor_selecionado,
                     "Quantidade": quantidade,
-                    "Valor_Total": valor_total,
-                    "Forma_Pagamento": forma_pagamento,
-                    "Status": "Pendente"
-                }
+                    "Preco_Unitario": preco_unitario,
+                    "Subtotal": preco_unitario * quantidade
+                })
+                st.success(f"{quantidade}x {sabor_selecionado} adicionado!")
+                st.rerun()
 
-                pedidos_df = pd.concat([pedidos_df, pd.DataFrame([novo_pedido])], ignore_index=True)
-                salvar_pedidos(pedidos_df)
+        st.info(f"Preço Unitário: **R$ {preco_unitario:.2f}** | Categoria: **{detalhes_item['Categoria']}**")
 
-                st.success("✅ Pedido enviado com sucesso!")
+        st.divider()
 
-                if forma_pagamento == "Pix":
-                    st.subheader("📲 Pagamento via Pix")
-                    st.write("Escaneie o QR Code abaixo com o aplicativo do seu banco para realizar o pagamento:")
-                    
-                    payload = gerar_payload_pix(
-                        chave=config_pix["chave_pix"],
-                        nome=config_pix["nome_recebedor"],
-                        cidade=config_pix["cidade_recebedor"],
-                        valor=valor_total,
-                        txid=novo_id[-10:]
-                    )
-                    
-                    url_qr = obter_url_qr_code(payload)
-                    
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.image(url_qr, width=220)
-                    with col2:
-                        st.write(f"**Chave Pix:** {config_pix['chave_pix']}")
-                        st.write(f"**Valor:** R$ {valor_total:.2f}")
-                        st.text_area("Copia e Cola Pix:", payload, height=100)
+        # --- ETAPA 2: VISUALIZAR CARRINHO E DADOS DE PAGAMENTO ---
+        st.subheader("🛒 Seu Carrinho")
+        
+        if not st.session_state["carrinho"]:
+            st.info("Seu carrinho está vazio. Escolha um sabor acima e clique em 'Adicionar'.")
+        else:
+            df_carrinho = pd.DataFrame(st.session_state["carrinho"])
+            st.dataframe(df_carrinho[["Sabor", "Quantidade", "Preco_Unitario", "Subtotal"]], use_container_width=True)
+            
+            valor_total_carrinho = df_carrinho["Subtotal"].sum()
+            st.markdown(f"### **Total do Pedido: R$ {valor_total_carrinho:.2f}**")
+
+            if st.button("🗑️ Limpar Carrinho"):
+                st.session_state["carrinho"] = []
+                st.rerun()
+
+            st.divider()
+
+            # --- ETAPA 3: FINALIZAR COMPRA ---
+            with st.form("form_finalizar_pedido"):
+                st.subheader("2. Identificação e Pagamento")
+                cliente_nome = st.text_input("Seu Nome Completo:")
+                forma_pagamento = st.selectbox("Forma de Pagamento:", ["Pix", "Dinheiro", "Cartão de Crédito/Débito"])
+
+                btn_confirmar = st.form_submit_button("🛒 Finalizar Pedido")
+
+            if btn_confirmar:
+                if not cliente_nome.strip():
+                    st.error("Por favor, informe seu nome para identificarmos o pedido.")
+                else:
+                    novo_id = f"PED-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                    data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                    sabores_str = ", ".join([f"{item['Sabor']} ({item['Quantidade']}x)" for item in st.session_state["carrinho"]])
+                    qtd_total = sum([item['Quantidade'] for item in st.session_state["carrinho"]])
+
+                    novo_pedido = {
+                        "ID": novo_id,
+                        "Data_Hora": data_hora,
+                        "Cliente": cliente_nome,
+                        "Sabor": sabores_str,
+                        "Quantidade": qtd_total,
+                        "Valor_Total": valor_total_carrinho,
+                        "Forma_Pagamento": forma_pagamento,
+                        "Status": "Pendente"
+                    }
+
+                    pedidos_df = pd.concat([pedidos_df, pd.DataFrame([novo_pedido])], ignore_index=True)
+                    salvar_pedidos(pedidos_df)
+
+                    st.success("✅ Pedido enviado com sucesso!")
+
+                    if forma_pagamento == "Pix":
+                        st.subheader("📲 Pagamento via Pix")
+                        st.write("Escaneie o QR Code abaixo com o aplicativo do seu banco para realizar o pagamento:")
+                        
+                        payload = gerar_payload_pix(
+                            chave=config_pix["chave_pix"],
+                            nome=config_pix["nome_recebedor"],
+                            cidade=config_pix["cidade_recebedor"],
+                            valor=valor_total_carrinho,
+                            txid=novo_id[-10:]
+                        )
+                        
+                        url_qr = obter_url_qr_code(payload)
+                        
+                        col1, col2 = st.columns([1, 2])
+                        with col1:
+                            st.image(url_qr, width=220)
+                        with col2:
+                            st.write(f"**Chave Pix:** {config_pix['chave_pix']}")
+                            st.write(f"**Valor:** R$ {valor_total_carrinho:.2f}")
+                            st.text_area("Copia e Cola Pix:", payload, height=100)
+
+                    # Limpa o carrinho pós confirmação
+                    st.session_state["carrinho"] = []
 
 # ==========================================
 # 📊 GESTÃO CHUP CHUP MANIA (MODO ADM)
@@ -319,7 +363,7 @@ else:
         if os.path.exists(NOME_BANNER):
             st.image(NOME_BANNER, width=110)
     with col_titulo:
-        st.title("🍦 Gestão Chup Chup Mania")
+        st.title("⚡ Gestão Chup Chup Mania")
         st.write("Sistema Integrado de Vendas, Pedidos e Controle de Estoque")
 
     st.divider()
@@ -331,7 +375,7 @@ else:
         col_login, _ = st.columns([2, 1])
         with col_login:
             with st.form("form_login"):
-                st.subheader("Acesso Restrito")
+                st.subheader("🔑 Acesso Restrito")
                 senha_input = st.text_input("Senha de Acesso:", type="password")
                 btn_entrar = st.form_submit_button("Acessar Painel")
 
@@ -352,14 +396,15 @@ else:
             st.session_state["autenticado"] = False
             st.rerun()
 
+        # ÍCONES PROFISSIONAIS NO MENU LATERAL
         opcao_menu = st.sidebar.radio(
             "Navegação",
-            ["📋 Fila de Pedidos", "📦 Controle de Estoque", "📊 Relatório de Vendas", "⚙️ Configurações & QR Code"]
+            ["⚡ Pedidos em Aberto", "📂 Gestão de Estoque", "📈 Relatório de Vendas", "🛠️ Configurações & Conexões"]
         )
 
         # 1. FILA DE PEDIDOS
-        if opcao_menu == "📋 Fila de Pedidos":
-            st.header("📋 Fila de Pedidos Recebidos")
+        if opcao_menu == "⚡ Pedidos em Aberto":
+            st.header("⚡ Fila de Pedidos Recebidos")
             
             pedidos_pendentes = pedidos_df[pedidos_df["Status"] == "Pendente"]
 
@@ -369,16 +414,26 @@ else:
                 for idx, row in pedidos_pendentes.iterrows():
                     with st.expander(f"Pedido #{row['ID']} — {row['Cliente']} (R$ {row['Valor_Total']:.2f})"):
                         st.write(f"**Data/Hora:** {row['Data_Hora']}")
-                        st.write(f"**Sabor:** {row['Sabor']} x {row['Quantidade']}")
+                        st.write(f"**Itens:** {row['Sabor']}")
                         st.write(f"**Forma de Pagamento:** {row['Forma_Pagamento']}")
                         
                         col1, col2 = st.columns(2)
                         with col1:
                             if st.button(f"✅ Concluir Pedido", key=f"entregar_{row['ID']}"):
-                                idx_est = estoque_df[estoque_df["Sabor"] == row["Sabor"]].index
-                                if not idx_est.empty:
-                                    estoque_df.loc[idx_est, "Estoque"] -= row["Quantidade"]
-                                    salvar_estoque(estoque_df)
+                                itens_brutos = str(row["Sabor"]).split(",")
+                                for item_str in itens_brutos:
+                                    if "(" in item_str and ")" in item_str:
+                                        nome_sabor = item_str.split("(")[0].strip()
+                                        qtd_item = int(item_str.split("(")[1].replace("x)", "").replace("x", "").strip())
+                                    else:
+                                        nome_sabor = item_str.strip()
+                                        qtd_item = int(row["Quantidade"])
+
+                                    idx_est = estoque_df[estoque_df["Sabor"] == nome_sabor].index
+                                    if not idx_est.empty:
+                                        estoque_df.loc[idx_est, "Estoque"] -= qtd_item
+
+                                salvar_estoque(estoque_df)
 
                                 nova_venda = {
                                     "ID": row["ID"],
@@ -406,8 +461,8 @@ else:
                                 st.rerun()
 
         # 2. CONTROLE DE ESTOQUE
-        elif opcao_menu == "📦 Controle de Estoque":
-            st.header("📦 Estoque Atual")
+        elif opcao_menu == "📂 Gestão de Estoque":
+            st.header("📂 Estoque Atual")
             st.dataframe(estoque_df, use_container_width=True)
 
             st.subheader("➕ Atualizar ou Cadastrar Sabor")
@@ -433,9 +488,9 @@ else:
                         st.success(f"Estoque de **{sabor}** atualizado!")
                         st.rerun()
 
-        # 3. RELATÓRIO DE VENDAS (COM CANCELAMENTO E DEVOLUÇÃO AO ESTOQUE)
-        elif opcao_menu == "📊 Relatório de Vendas":
-            st.header("📊 Faturamento e Desempenho")
+        # 3. RELATÓRIO DE VENDAS
+        elif opcao_menu == "📈 Relatório de Vendas":
+            st.header("📈 Faturamento e Desempenho")
 
             if vendas_df.empty:
                 st.info("Nenhuma venda registrada até o momento.")
@@ -455,34 +510,41 @@ else:
 
                 if st.button("🔄 Cancelar Venda Selecionada e Estornar Estoque"):
                     venda_info = vendas_df[vendas_df["ID"] == venda_selecionada_id].iloc[0]
-                    sabor_venda = venda_info["Sabor"]
-                    qtd_venda = int(venda_info["Quantidade"])
+                    sabores_venda = str(venda_info["Sabor"]).split(",")
 
-                    idx_est = estoque_df[estoque_df["Sabor"] == sabor_venda].index
-                    if not idx_est.empty:
-                        estoque_df.loc[idx_est, "Estoque"] += qtd_venda
-                        salvar_estoque(estoque_df)
+                    for item_str in sabores_venda:
+                        if "(" in item_str and ")" in item_str:
+                            nome_sabor = item_str.split("(")[0].strip()
+                            qtd_venda = int(item_str.split("(")[1].replace("x)", "").replace("x", "").strip())
+                        else:
+                            nome_sabor = item_str.strip()
+                            qtd_venda = int(venda_info["Quantidade"])
+
+                        idx_est = estoque_df[estoque_df["Sabor"] == nome_sabor].index
+                        if not idx_est.empty:
+                            estoque_df.loc[idx_est, "Estoque"] += qtd_venda
+
+                    salvar_estoque(estoque_df)
 
                     vendas_df = vendas_df[vendas_df["ID"] != venda_selecionada_id]
                     salvar_vendas(vendas_df)
 
-                    st.success(f"Venda {venda_selecionada_id} cancelada! {qtd_venda} unidade(s) de '{sabor_venda}' retornaram ao estoque.")
+                    st.success(f"Venda {venda_selecionada_id} cancelada! Unidades estornadas para o estoque.")
                     st.rerun()
 
                 st.divider()
                 st.subheader("Histórico Detalhado")
                 st.dataframe(vendas_df.sort_values(by="Data_Hora", ascending=False), use_container_width=True)
 
-        # 4. CONFIGURAÇÕES & QR CODE (COM IMAGEM LOCAL PIX.PNG)
-        elif opcao_menu == "⚙️ Configurações & QR Code":
-            st.header("⚙️ Configurações Gerais")
+        # 4. CONFIGURAÇÕES & QR CODE
+        elif opcao_menu == "🛠️ Configurações & Conexões":
+            st.header("🛠️ Configurações Gerais")
 
             col_pix_logo, col_pix_tit = st.columns([1, 4])
             with col_pix_logo:
-                if os.path.exists(NOME_PIX):
-                    st.image(NOME_PIX, width=130)
+                st.image(URL_PIX_LOGO, width=120)
             with col_pix_tit:
-                st.subheader("Cadastro da Chave Pix (Banco Central)")
+                st.subheader("🔑 Cadastro da Chave Pix (Banco Central)")
 
             with st.form("form_config_pix"):
                 chave = st.text_input("Chave Pix:", value=config_pix["chave_pix"])
