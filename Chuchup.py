@@ -8,7 +8,7 @@ import urllib.parse
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Gestão Chup Chup Mania - NextGen", 
-    page_icon="⚡", 
+    page_icon="🌐", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -363,7 +363,7 @@ else:
         if os.path.exists(NOME_BANNER):
             st.image(NOME_BANNER, width=110)
     with col_titulo:
-        st.title("⚡ Gestão Chup Chup Mania")
+        st.title("⚙️ Gestão Chup Chup Mania")
         st.write("Sistema Integrado de Vendas, Pedidos e Controle de Estoque")
 
     st.divider()
@@ -375,7 +375,7 @@ else:
         col_login, _ = st.columns([2, 1])
         with col_login:
             with st.form("form_login"):
-                st.subheader("🔑 Acesso Restrito")
+                st.subheader("Acesso Restrito")
                 senha_input = st.text_input("Senha de Acesso:", type="password")
                 btn_entrar = st.form_submit_button("Acessar Painel")
 
@@ -399,12 +399,12 @@ else:
         # ÍCONES PROFISSIONAIS NO MENU LATERAL
         opcao_menu = st.sidebar.radio(
             "Navegação",
-            ["⚡ Pedidos em Aberto", "📂 Gestão de Estoque", "📈 Relatório de Vendas", "🛠️ Configurações & Conexões"]
+            ["Pedidos em Aberto", "📂 Gestão de Estoque", "📈 Relatório de Vendas", "🛠️ Configurações & Conexões"]
         )
 
         # 1. FILA DE PEDIDOS
-        if opcao_menu == "⚡ Pedidos em Aberto":
-            st.header("⚡ Fila de Pedidos Recebidos")
+        if opcao_menu == "Pedidos em Aberto":
+            st.header("Fila de Pedidos Recebidos")
             
             pedidos_pendentes = pedidos_df[pedidos_df["Status"] == "Pendente"]
 
